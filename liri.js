@@ -1,233 +1,162 @@
-//Logging of twitter operation and result is active, others operations will be added.
+require("dotenv").config();
 
-require('dotenv').config();
-
-var keys = require('./keys.js');
+//VARS
+var request = require("request");
+var fs = require("fs");
+var keys = require("./keys.js");
 var Spotify = require('node-spotify-api');
-var Twitter = require('twitter');
-var request = require('request');
-var fs = require('fs');
-var timestamp = require('time-stamp');
-
 var spotify = new Spotify(keys.spotify);
-var client = new Twitter(keys.twitter);
+//vars to capture user inputs.
+var userOption = process.argv[2]; 
+var inputParameter = process.argv[3];
 
-var inputArray = process.argv;
-var operation = process.argv[2];
-    operation = operation.toLowerCase();
-var searchArray = inputArray;
-    searchArray.splice(0, 3);
-var exeTime = timestamp('MM/DD/YYYY HH:mm:ss');
-console.log(exeTime);
+//Execute function
+UserInputs(userOption, inputParameter);
 
-function searchConstructor(searchConstructorArray) {
-
-    var localSearch = searchConstructorArray[0];
-
-    for (var i = 1; i < searchConstructorArray.length; i++) {
-
-        localSearch += '+' + searchConstructorArray[i];
-
+//FUNCTIONS
+function UserInputs (userOption, inputParameter){
+    switch (userOption) {
+    case 'concert-this':
+        showConcertInfo(inputParameter);
+        break;
+    case 'spotify-this-song':
+        showSongInfo(inputParameter);
+        break;
+    case 'movie-this':
+        showMovieInfo(inputParameter);
+        break;
+    case 'do-what-it-says':
+        showSomeInfo();
+        break;
+    default: 
+        console.log("Invalid Option. Please type any of the following options: \nconcert-this \nspotify-this-song \nmovie-this \ndo-what-it-says")
     }
-
-    return localSearch;
 }
 
-function tweets() {
-
-    var dataArray = [];
-    var dataArrayIndex = 0;
-    function dataObject(timestamp, body){
-        this.timestamp = timestamp,
-        this.body = body
-    };
-
-    client.get('statuses/home_timeline', function (error, tweets, response) {
-
-        if (error) {
-            return console.log(error);
+//Funtion for Concert Info: Bands in Town
+function showConcertInfo(inputParameter){
+    var queryUrl = "https://rest.bandsintown.com/artists/" + inputParameter + "/events?app_id=codingbootcamp";
+    request(queryUrl, function(error, response, body) {
+    // If the request is successful
+    if (!error && response.statusCode === 200) {
+        var concerts = JSON.parse(body);
+        for (var i = 0; i < concerts.length; i++) {  
+            console.log("**********EVENT INFO*********");  
+            fs.appendFileSync("log.txt", "**********EVENT INFO*********\n");//Append in log.txt file
+            console.log(i);
+            fs.appendFileSync("log.txt", i+"\n");
+            console.log("Name of the Venue: " + concerts[i].venue.name);
+            fs.appendFileSync("log.txt", "Name of the Venue: " + concerts[i].venue.name+"\n");
+            console.log("Venue Location: " +  concerts[i].venue.city);
+            fs.appendFileSync("log.txt", "Venue Location: " +  concerts[i].venue.city+"\n");
+            console.log("Date of the Event: " +  concerts[i].datetime);
+            fs.appendFileSync("log.txt", "Date of the Event: " +  concerts[i].datetime+"\n");
+            console.log("*****************************");
+            fs.appendFileSync("log.txt", "*****************************"+"\n");
         }
+    } else{
+      console.log('Error occurred.');
+    }
+});}
 
-        tweets.forEach(function (currentValue, index, arr) {
+//Funtion for Music Info: Spotify
+function showSongInfo(inputParameter) {
+    if (inputParameter === undefined) {
+        inputParameter = "The Sign"; //default Song
+    }
+    spotify.search(
+        {
+            type: "track",
+            query: inputParameter
+        },
+        function (err, data) {
+            if (err) {
+                console.log("Error occurred: " + err);
+                return;
+            }
+            var songs = data.tracks.items;
 
-            var tweet = new dataObject((index+1) + ": " + currentValue.created_at, currentValue.text);
-            dataArray[dataArrayIndex] = tweet;
-            dataArrayIndex++;
+            for (var i = 0; i < songs.length; i++) {
+                console.log("**********SONG INFO*********");
+                fs.appendFileSync("log.txt", "**********SONG INFO*********\n");
+                console.log(i);
+                fs.appendFileSync("log.txt", i +"\n");
+                console.log("Song name: " + songs[i].name);
+                fs.appendFileSync("log.txt", "song name: " + songs[i].name +"\n");
+                console.log("Preview song: " + songs[i].preview_url);
+                fs.appendFileSync("log.txt", "preview song: " + songs[i].preview_url +"\n");
+                console.log("Album: " + songs[i].album.name);
+                fs.appendFileSync("log.txt", "album: " + songs[i].album.name + "\n");
+                console.log("Artist(s): " + songs[i].artists[0].name);
+                fs.appendFileSync("log.txt", "artist(s): " + songs[i].artists[0].name + "\n");
+                console.log("*****************************");  
+                fs.appendFileSync("log.txt", "*****************************\n");
+             }
+        }
+    );
+};
 
-            console.log((index + 1) + ": " + currentValue.created_at);
-            console.log(currentValue.text);
-            console.log("\n******************************************************************************************************************************************************************************\n");
-            
-        });
+//Funtion for Movie Info: OMDB
+function showMovieInfo(inputParameter){
+    if (inputParameter === undefined) {
+        inputParameter = "Mr. Nobody"
+        console.log("-----------------------");
+        fs.appendFileSync("log.txt", "-----------------------\n");
+        console.log("If you haven't watched 'Mr. Nobody,' then you should: http://www.imdb.com/title/tt0485947/");
+        fs.appendFileSync("log.txt", "If you haven't watched 'Mr. Nobody,' then you should: http://www.imdb.com/title/tt0485947/" +"\n");
+        console.log("It's on Netflix!");
+        fs.appendFileSync("log.txt", "It's on Netflix!\n");
+    }
+    var queryUrl = "http://www.omdbapi.com/?t=" + inputParameter + "&y=&plot=short&apikey=b3c0b435";
+    request(queryUrl, function(error, response, body) {
+    // If the request is successful
+    if (!error && response.statusCode === 200) {
+        var movies = JSON.parse(body);
+        console.log("**********MOVIE INFO*********");  
+        fs.appendFileSync("log.txt", "**********MOVIE INFO*********\n");
+        console.log("Title: " + movies.Title);
+        fs.appendFileSync("log.txt", "Title: " + movies.Title + "\n");
+        console.log("Release Year: " + movies.Year);
+        fs.appendFileSync("log.txt", "Release Year: " + movies.Year + "\n");
+        console.log("IMDB Rating: " + movies.imdbRating);
+        fs.appendFileSync("log.txt", "IMDB Rating: " + movies.imdbRating + "\n");
+        console.log("Rotten Tomatoes Rating: " + getRottenTomatoesRatingValue(movies));
+        fs.appendFileSync("log.txt", "Rotten Tomatoes Rating: " + getRottenTomatoesRatingValue(movies) + "\n");
+        console.log("Country of Production: " + movies.Country);
+        fs.appendFileSync("log.txt", "Country of Production: " + movies.Country + "\n");
+        console.log("Language: " + movies.Language);
+        fs.appendFileSync("log.txt", "Language: " + movies.Language + "\n");
+        console.log("Plot: " + movies.Plot);
+        fs.appendFileSync("log.txt", "Plot: " + movies.Plot + "\n");
+        console.log("Actors: " + movies.Actors);
+        fs.appendFileSync("log.txt", "Actors: " + movies.Actors + "\n");
+        console.log("*****************************");  
+        fs.appendFileSync("log.txt", "*****************************\n");
+    } else{
+      console.log('Error occurred.');
+    }
 
-        toFile(operation, dataArray);
+});}
 
+//function to get proper Rotten Tomatoes Rating
+function getRottenTomatoesRatingObject (data) {
+    return data.Ratings.find(function (item) {
+       return item.Source === "Rotten Tomatoes";
     });
-
+  }
   
+  function getRottenTomatoesRatingValue (data) {
+    return getRottenTomatoesRatingObject(data).Value;
+  }
 
+//function for reading out of random.txt file  
+function showSomeInfo(){
+	fs.readFile('random.txt', 'utf8', function(err, data){
+		if (err){ 
+			return console.log(err);
+		}
+        var dataArr = data.split(',');
+        UserInputs(dataArr[0], dataArr[1]);
+	});
 }
 
-function spotifyThis(searchArray) {
-
-    var dataArray = [];
-    var dataArrayIndex = 0;
-    function dataObject(artist, song, preview, album){
-        this.artist = artist,
-        this.song = song,
-        this.preview = preview,
-        this.album = album
-    }
-
-    var search = searchConstructor(searchArray);
-
-    spotify.search({ type: 'track', query: search }, function (error, data) {
-
-        if (error) {
-            return console.log(error);
-        }
-
-        var albumArray = data.tracks.items;
-
-
-        albumArray.forEach(function (currentValue, index, arr) {
-
-            var preview = arr[index].preview_url;
-
-            if (preview == null) {
-                preview = "Preview not available.";
-            }
-            
-           // var song = new dataObject(arr[index].artists[0].name, arr[index].name, preview, arr[index].album.name);
-            //dataArray[dataArrayIndex] = song;
-            //dataArrayIndex++;
-
-            console.log("Artist: " + arr[index].artists[0].name);
-            console.log("Song: " + arr[index].name);
-            console.log("Preview: " + preview);
-            console.log("Album: " + arr[index].album.name);
-            console.log(" ");
-            console.log("******************************************************************************************************************************************************************************");
-            console.log(" ");
-        });
-
-       // toFile(operation, song);
-
-    });
-}
-
-function movieThis(searchArray) {
-
-    var search = searchConstructor(searchArray);
-
-    request('http://www.omdbapi.com/?i=tt3896198&apikey=640a01e7&t=' + search, function (error, response, body) {
-
-        if (error) {
-            return console.log(error);
-        }
-
-        var movie = JSON.parse(body);
-
-        console.log("Title: " + movie.Title);
-        console.log("Year: " + movie.Year);
-        console.log("Ratings:");
-        console.log("IMDB: " + movie.Ratings[0].Value);
-        console.log("Rotten Tomatoes: " + movie.Ratings[1].Value);
-        console.log("Country: " + movie.Country);
-        console.log("Plot: " + movie.Plot);
-        console.log("Actors: " + movie.Actors);
-        console.log(" ");
-        console.log("******************************************************************************************************************************************************************************");
-        console.log(" ");
-
-    });
-}
-
-function doWhatItSays() {
-
-    fs.readFile('random.txt', 'utf8', function (error, data) {
-
-        if (error) {
-            return console.log(error);
-        }
-
-        var string = data.split(',');
-        
-        var fileOperation = string[0]
-            operation = fileOperation.toLocaleLowerCase();
-
-        var arraySearch = string[1];
-            arraySearch = arraySearch.replace(/"/g, "");
-            arraySearch = arraySearch.split(' ');
-
-        main(operation, arraySearch);
-
-    });
-}
-
-function toFile(operation, fileInfo){
-
-    //console.log(operation);
-
-    //console.log(fileInfo[0]);
-
-    var operationInfo = "\n" + exeTime + "\nOperation: " + operation + "\n\n";
-    var prettyPrint =  "\n\n******************************************************************************************************************************************************************************\n\n"
-    var body = "";
-
-    fs.appendFile('log.txt', operationInfo, function(error){
-        if(error){
-            return console.log("Error: " + error);
-        }
-    });
-   // console.log(operationInfo);
-    //console.log(resultInfo);
-
-    for(var i=0; i<fileInfo.length; i++){
-       
-        var resultInfo = fileInfo[i].timestamp + "\n" + fileInfo[i].body;
-        body += resultInfo + prettyPrint;
-    }    
-      
-    
-    
-    
-    fs.appendFile('log.txt', body, function(error){
-           
-            if(error){
-               return  console.log("Error: " + error);
-            }
-        });
-
-    
-
-
-}
-
-function main(operation, searchArray) {
-
-    switch (operation) {
-
-        case ('my-tweets'):
-
-            tweets();
-            break;
-
-        case ('spotify-this-song'):
-
-            spotifyThis(searchArray);
-            break;
-
-        case ('movie-this'):
-
-            movieThis(searchArray);
-            break;
-
-        case ('do-what-it-says'):
-
-            doWhatItSays();
-            break;
-    };
-}
-
-main(operation, searchArray);

@@ -10,10 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/jason-muldoon/Liri-node-app.git"
   },
-  "keywords": [
-    "spotify",
-    "twitter"
-  ],
+ 
+  "keywords": [],
   "author": "jason muldoon",
   "license": "ISC",
   "bugs": {
@@ -22,9 +20,8 @@
   "homepage": "https://github.com/jason-muldoon/Liri-node-app#readme",
   "dependencies": {
     "node-spotify-api": "1.0.7",
-    "twitter": "1.7.1",
     "request": "2.87.0",
     "dotenv": "6.0.0",
-    "time-stamp": "2.0.0"
+    "moment": "2.8.8"
   }
 }
