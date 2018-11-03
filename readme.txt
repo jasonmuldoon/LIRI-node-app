@@ -1,25 +1,17 @@
 Overview
 LIRI is like iPhone's SIRI. However, while SIRI is a Speech Interpretation and Recognition Interface, LIRI is a Language Interpretation and Recognition Interface. LIRI is a command line node app that takes in parameters and gives you back data.
 
-Before You Begin
-Make a JavaScript file named keys.js.
-Inside keys.js your file will look like this:
 
-exports.twitterKeys = {
-  consumer_key: '<input here>',
-  consumer_secret: '<input here>',
-  access_token_key: '<input here>',
-  access_token_secret: '<input here>',
-}
-Make a file called random.txt.
+Step by Step instructions
+Open your terminal such as Bash.
 
-Inside of random.txt put the following in with no extra characters or white space:
-spotify-this-song,"I Want it That Way"
-LIRI Commands
-node liri.js my-tweets
+Navigate to the folder that contains the liri.js file.
 
-This will show your last 20 tweets and when they were created at in your terminal/bash window.
-node liri.js spotify-this-song '<song name here>'
+Depending on the command you run, the output will vary.
+
+
+ node liri.js concert-this <name of artist or band>
+
 
 This will show the following information about the song in your terminal/bash window
 
@@ -49,6 +41,17 @@ If you haven't watched "Mr. Nobody," then you should: http://www.imdb.com/title/
 It's on Netflix!
 node liri.js do-what-it-says
 
-Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
-It should run spotify-this-song for "I Want it That Way," as follows the text in random.txt.
-Feel free to change the text in that document to test out the feature for other commands.
+
+TECHNOLOGIES USED
+Javascript
+Nodejs
+Node packages:
+Node-Spotify-API
+Request
+Moment
+DotEnv
+APIs used:
+Bands in Town
+OMDB
+Git
+GitHub
